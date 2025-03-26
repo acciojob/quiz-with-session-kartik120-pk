@@ -34,8 +34,7 @@ const questions = [
 
 // Load progress from session storage
 function loadProgress() {
-  const savedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
-  return savedProgress;
+  return JSON.parse(sessionStorage.getItem("progress")) || {};
 }
 
 // Save progress to session storage
@@ -48,7 +47,7 @@ function saveProgress(questionIndex, selectedValue) {
 // Load final score from local storage
 function loadScore() {
   const savedScore = localStorage.getItem("score");
-  if (savedScore) {
+  if (savedScore !== null) {
     scoreElement.textContent = `Your score is ${savedScore} out of 5.`;
   }
 }
@@ -56,6 +55,7 @@ function loadScore() {
 // Render quiz questions
 function renderQuestions() {
   const savedProgress = loadProgress();
+  questionsElement.innerHTML = ""; // Clear previous content
 
   questions.forEach((question, index) => {
     const questionElement = document.createElement("div");
