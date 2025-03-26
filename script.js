@@ -1,8 +1,9 @@
-// Retrieve elements
+// Get references to HTML elements
 const questionsElement = document.getElementById("questions");
 const submitButton = document.getElementById("submit");
 const scoreElement = document.getElementById("score");
 
+// Questions array
 const questions = [
   {
     question: "What is the capital of France?",
@@ -33,69 +34,78 @@ const questions = [
 
 // Load progress from session storage
 function loadProgress() {
-  const storedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
-  return storedProgress;
+  const savedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
+  return savedProgress;
 }
 
-function saveProgress(questionIndex, answer) {
-  let progress = loadProgress();
-  progress[questionIndex] = answer;
+// Save progress to session storage
+function saveProgress(questionIndex, selectedValue) {
+  const progress = loadProgress();
+  progress[questionIndex] = selectedValue;
   sessionStorage.setItem("progress", JSON.stringify(progress));
 }
 
-// Display the quiz questions and choices
-function renderQuestions() {
-  questionsElement.innerHTML = "";
-  const userAnswers = loadProgress();
+// Load final score from local storage
+function loadScore() {
+  const savedScore = localStorage.getItem("score");
+  if (savedScore) {
+    scoreElement.textContent = `Your score is ${savedScore} out of 5.`;
+  }
+}
 
-  questions.forEach((question, i) => {
+// Render quiz questions
+function renderQuestions() {
+  const savedProgress = loadProgress();
+
+  questions.forEach((question, index) => {
     const questionElement = document.createElement("div");
     questionElement.innerHTML = `<p>${question.question}</p>`;
-    
+
     question.choices.forEach((choice) => {
       const choiceElement = document.createElement("input");
       choiceElement.setAttribute("type", "radio");
-      choiceElement.setAttribute("name", `question-${i}`);
+      choiceElement.setAttribute("name", `question-${index}`);
       choiceElement.setAttribute("value", choice);
-      choiceElement.addEventListener("change", () => saveProgress(i, choice));
       
-      if (userAnswers[i] === choice) {
+      // Retain the selected choice after page reload
+      if (savedProgress[index] === choice) {
         choiceElement.checked = true;
       }
-      
+
+      // Save user selection when changed
+      choiceElement.addEventListener("change", () => {
+        saveProgress(index, choice);
+      });
+
       const label = document.createElement("label");
       label.appendChild(choiceElement);
       label.appendChild(document.createTextNode(choice));
+      
       questionElement.appendChild(label);
     });
-    
+
     questionsElement.appendChild(questionElement);
   });
 }
 
+// Calculate score and store in local storage
 function calculateScore() {
-  const userAnswers = loadProgress();
+  const savedProgress = loadProgress();
   let score = 0;
-  
-  questions.forEach((question, i) => {
-    if (userAnswers[i] === question.answer) {
+
+  questions.forEach((question, index) => {
+    if (savedProgress[index] === question.answer) {
       score++;
     }
   });
-  
+
   localStorage.setItem("score", score);
-  return score;
+  scoreElement.textContent = `Your score is ${score} out of 5.`;
 }
 
-submitButton.addEventListener("click", () => {
-  const finalScore = calculateScore();
-  scoreElement.innerText = `Your score is ${finalScore} out of 5.`;
-});
+// Event listener for submit button
+submitButton.addEventListener("click", calculateScore);
 
-// Load previous score if available
-const storedScore = localStorage.getItem("score");
-if (storedScore !== null) {
-  scoreElement.innerText = `Your last score was ${storedScore} out of 5.`;
-}
-
+// Initialize the quiz
 renderQuestions();
+loadScore();
